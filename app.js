@@ -1,5 +1,5 @@
 const API_URL = '/api/api.php';
-const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com'; // Replace with your actual Google OAuth Client ID
+const GOOGLE_CLIENT_ID = '904489350740-g3ih4bvl3k06ikrspdtnltm2oj17nj8k.apps.googleusercontent.com'; // Replace with your actual Google OAuth Client ID
 
 let state = {
   lang: localStorage.getItem('charly_lang') || 'en',
