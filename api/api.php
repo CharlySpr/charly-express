@@ -25,7 +25,14 @@ $user = $dbParts['user'] ?? '';
 $pass = $dbParts['pass'] ?? '';
 $dbname = ltrim($dbParts['path'] ?? '', '/');
 
+// Extract Neon endpoint ID from the subdomain for SNI support
+$hostParts = explode('.', $host);
+$endpointId = $hostParts[0] ?? '';
+
 $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=require";
+if ($endpointId && strpos($databaseUrl, 'options=endpoint') === false) {
+    $dsn .= ";options=endpoint%3D" . $endpointId;
+}
 
 try {
     $pdo = new PDO($dsn, $user, $pass, [
