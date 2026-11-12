@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Charly Express - Cameroon Marketplace & Admin Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Google Identity Services Library -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen relative">
+
+  <!-- First-Time Language Selector Modal -->
+  <div id="language-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl text-center border border-gray-100">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6">
+        <i class="fa-solid fa-language"></i>
+      </div>
+      <h2 class="text-2xl font-black text-slate-900 mb-2">Welcome / Bienvenue</h2>
+      <p class="text-slate-500 mb-8 text-sm">Select your language to continue to Charly Express Marketplace</p>
+      <div class="grid grid-cols-2 gap-4">
+        <button onclick="setLanguage('en')" class="p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 text-emerald-800 font-bold hover:bg-emerald-100 transition flex flex-col items-center gap-2">
+          <span class="w-8 h-8 rounded-full overflow-hidden shadow-sm inline-block">
+            <svg viewBox="0 0 60 30" class="w-full h-full object-cover">
+              <clipPath id="s"><path d="M0,0 v30 h60 v-30 z"/></clipPath>
+              <g clip-path="url(#s)">
+                <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+                <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+                <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/>
+                <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
+                <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
+              </g>
+            </svg>
+          </span> 
+          English
+        </button>
+        <button onclick="setLanguage('fr')" class="p-4 rounded-2xl border-2 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-slate-800 font-bold transition flex flex-col items-center gap-2">
+          <span class="w-8 h-8 rounded-full overflow-hidden shadow-sm inline-block">
+            <svg viewBox="0 0 3 2" class="w-full h-full object-cover">
+              <rect width="1" height="2" x="0" fill="#002395"/>
+              <rect width="1" height="2" x="1" fill="#fff"/>
+              <rect width="1" height="2" x="2" fill="#ED2939"/>
+            </svg>
+          </span> 
+          Français
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Header Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-md">CE</div>
+          <div>
+            <h1 class="font-extrabold text-slate-900 leading-tight">Charly Express</h1>
+            <p id="portal-subtitle" class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest" data-i18n="cameroonMarket">Cameroon Market</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- User Notification Bell -->
+        <button id="notif-btn" onclick="openModal('notif-modal'); markNotificationsRead();" class="relative p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+          <i class="fa-solid fa-bell text-lg text-slate-700"></i>
+          <span id="notif-badge" class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow">0</span>
+        </button>
+
+        <!-- Shopping Cart Icon -->
+        <button id="cart-nav-btn" onclick="openModal('cart-modal')" class="relative p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+          <i class="fa-solid fa-cart-shopping text-lg text-emerald-700"></i>
+          <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-amber-500 text-slate-900 font-black text-[11px] w-5 h-5 rounded-full flex items-center justify-center shadow">0</span>
+        </button>
+
+        <!-- Language Switcher Pill -->
+        <button onclick="toggleLanguage()" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 transition">
+          <span id="lang-flag" class="w-4 h-4 rounded-full overflow-hidden flex items-center justify-center shadow-xs"></span>
+          <span id="lang-display">EN</span>
+        </button>
+
+        <!-- Auth Navigation -->
+        <div id="auth-buttons" class="flex items-center gap-2">
+          <button onclick="openModal('login-modal')" class="px-4 py-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700" data-i18n="signIn">Sign In</button>
+          <button onclick="openModal('register-modal')" class="px-4 py-2 text-sm font-bold bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 shadow-sm transition" data-i18n="signUp">Sign Up</button>
+        </div>
+
+        <div id="user-menu" class="hidden flex items-center gap-3">
+          <span id="nav-username" class="text-xs font-bold bg-slate-100 px-3 py-1.5 rounded-lg text-slate-700">@username</span>
+
+          <!-- ADMIN DIRECT ADD BUTTON -->
+          <button id="admin-add-btn" onclick="openAdminAddModal()" class="hidden px-3 py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> <span data-i18n="addProductBtn">Add Product</span>
+          </button>
+
+          <!-- USER SELL BUTTON -->
+          <button id="user-sell-btn" onclick="openAddProductModal()" class="px-3 py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> <span data-i18n="sell">Sell Item</span>
+          </button>
+
+          <button onclick="logout()" class="p-2 text-slate-400 hover:text-rose-600 text-sm" title="Logout">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notification Toast Banner -->
+  <div id="toast" class="hidden">
+    <i id="toast-icon" class="fa-solid fa-circle-info text-xl"></i>
+    <span id="toast-message">Message</span>
+  </div>
+
+  <!-- ==================== 1. USER MARKETPLACE VIEW ==================== -->
+  <main id="user-marketplace-view" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div>
+        <h2 class="text-2xl font-black text-slate-900" data-i18n="catalogTitle">Explore Products</h2>
+        <p class="text-slate-500 text-sm" data-i18n="catalogSubtitle">Verified listings across Cameroon</p>
+      </div>
+
+      <!-- Categories Filter Bar -->
+      <div id="category-filter-bar" class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0"></div>
+    </div>
+
+    <!-- Product Grid -->
+    <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+  </main>
+
+
+  <!-- ==================== 2. EXCLUSIVE ADMIN DASHBOARD ==================== -->
+  <div id="admin-dashboard-view" class="hidden flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Admin Header & KPI Stat Cards -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div>
+        <h2 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-chart-line text-emerald-600"></i> <span data-i18n="adminDashboard">Admin Executive Dashboard</span>
+        </h2>
+        <p class="text-slate-500 text-sm" data-i18n="adminSub">System oversight, customer orders, and category management</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="openModal('admin-category-modal')" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow transition flex items-center gap-2">
+          <i class="fa-solid fa-folder-plus"></i> <span data-i18n="manageCategories">Manage Categories</span>
+        </button>
+        <button onclick="openAdminAddModal()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow transition flex items-center gap-2">
+          <i class="fa-solid fa-plus"></i> <span data-i18n="addProductBtn">Add Product</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Overview Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-400 uppercase" data-i18n="registeredUsers">Registered Users</span>
+          <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"><i class="fa-solid fa-users text-sm"></i></div>
+        </div>
+        <div id="kpi-users-count" class="text-3xl font-black text-slate-900">0</div>
+      </div>
+
+      <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-400 uppercase" data-i18n="customerOrders">Customer Orders</span>
+          <div class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center"><i class="fa-solid fa-bag-shopping text-sm"></i></div>
+        </div>
+        <div id="kpi-orders-count" class="text-3xl font-black text-indigo-600">0</div>
+      </div>
+
+      <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-400 uppercase" data-i18n="pendingApprovals">Pending Approvals</span>
+          <div class="w-8 h-8 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center"><i class="fa-solid fa-clock text-sm"></i></div>
+        </div>
+        <div id="kpi-pending-count" class="text-3xl font-black text-amber-500">0</div>
+      </div>
+
+      <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-400 uppercase" data-i18n="inventoryVal">Total Inventory Value</span>
+          <div class="w-8 h-8 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center"><i class="fa-solid fa-vault text-sm"></i></div>
+        </div>
+        <div id="kpi-inventory-val" class="text-2xl font-black text-slate-900">0 FCFA</div>
+      </div>
+    </div>
+
+    <!-- Admin Section Tabs -->
+    <div class="flex items-center gap-3 border-b border-slate-200 mb-6 overflow-x-auto">
+      <button id="tab-btn-orders" onclick="switchAdminTab('orders')" class="pb-3 border-b-2 border-emerald-600 font-extrabold text-sm text-emerald-600 flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-receipt"></i> <span data-i18n="tabOrders">Customer Orders</span> (<span id="tab-orders-badge">0</span>)
+      </button>
+      <button id="tab-btn-users" onclick="switchAdminTab('users')" class="pb-3 border-b-2 border-transparent font-extrabold text-sm text-slate-400 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-users-gear"></i> <span data-i18n="tabUsers">User Management</span>
+      </button>
+      <button id="tab-btn-pending" onclick="switchAdminTab('pending')" class="pb-3 border-b-2 border-transparent font-extrabold text-sm text-slate-400 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-hourglass-half"></i> <span data-i18n="tabPending">Pending Approvals</span> (<span id="tab-pending-badge">0</span>)
+      </button>
+      <button id="tab-btn-allprods" onclick="switchAdminTab('allprods')" class="pb-3 border-b-2 border-transparent font-extrabold text-sm text-slate-400 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+        <i class="fa-solid fa-boxes-stacked"></i> <span data-i18n="tabInventory">Live Inventory</span>
+      </button>
+    </div>
+
+    <!-- ADMIN TAB 1: CUSTOMER ORDERS MANAGEMENT -->
+    <div id="admin-tab-orders" class="space-y-6">
+      <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="font-black text-slate-900 text-lg" data-i18n="incomingOrders">Incoming Customer Orders</h3>
+          <span class="text-xs text-slate-400 font-bold" data-i18n="verifyDispatch">Verify payment and confirm dispatch</span>
+        </div>
+        <div id="admin-orders-container" class="p-6 space-y-4"></div>
+      </div>
+    </div>
+
+    <!-- ADMIN TAB 2: USER MANAGEMENT TABLE -->
+    <div id="admin-tab-users" class="hidden space-y-6">
+      <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="font-black text-slate-900 text-lg" data-i18n="userRegistry">Platform User Registry</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 text-[11px] uppercase text-slate-400 font-bold border-b border-slate-100">
+                <th class="py-4 px-6" data-i18n="thUser">User / ID</th>
+                <th class="py-4 px-6" data-i18n="thContact">Contact & Address</th>
+                <th class="py-4 px-6" data-i18n="thRole">Role</th>
+                <th class="py-4 px-6" data-i18n="thListings">Listings</th>
+                <th class="py-4 px-6 text-right" data-i18n="thActions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-table-body" class="divide-y divide-slate-100 text-xs font-semibold text-slate-700"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN TAB 3: PENDING APPROVALS QUEUE -->
+    <div id="admin-tab-pending" class="hidden space-y-6">
+      <div id="admin-pending-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      <div id="pending-empty-msg" class="hidden text-center py-16 bg-white rounded-3xl border border-slate-200">
+        <i class="fa-solid fa-circle-check text-4xl text-emerald-500 mb-3"></i>
+        <h4 class="font-extrabold text-slate-800 text-lg" data-i18n="noPending">All clear! No pending submissions.</h4>
+      </div>
+    </div>
+
+    <!-- ADMIN TAB 4: ALL LIVE INVENTORY -->
+    <div id="admin-tab-allprods" class="hidden space-y-6">
+      <div id="admin-allprods-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+    </div>
+
+  </div>
+
+
+  <!-- PRODUCT LIGHTBOX GALLERY MODAL -->
+  <div id="lightbox-modal" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[999] flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative flex flex-col">
+      <button onclick="closeModal('lightbox-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl"><i class="fa-solid fa-xmark"></i></button>
+      <h3 id="lightbox-title" class="font-black text-slate-900 text-lg mb-4">Product Gallery</h3>
+      
+      <div class="relative h-80 bg-slate-100 rounded-2xl overflow-hidden mb-4">
+        <img id="lightbox-main-img" src="" class="w-full h-full object-contain">
+      </div>
+
+      <div id="lightbox-thumbs" class="flex items-center gap-2 overflow-x-auto pb-2"></div>
+    </div>
+  </div>
+
+
+  <!-- ADMIN ADD CATEGORY MODAL -->
+  <div id="admin-category-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="closeModal('admin-category-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+      <h3 class="text-xl font-black text-slate-900 mb-1" data-i18n="addNewCategory">Add New Category</h3>
+      <p class="text-slate-500 text-xs mb-6" data-i18n="catSub">Create a category for English and French marketplaces.</p>
+
+      <form id="category-form" onsubmit="handleAddCategory(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="catNameEn">Category Name (English)</label>
+          <input type="text" id="cat-name-en" required placeholder="e.g. Real Estate" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="catNameFr">Category Name (French)</label>
+          <input type="text" id="cat-name-fr" required placeholder="e.g. Immobilier" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+        <button type="submit" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition text-sm" data-i18n="saveCategory">Save Category</button>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- USER NOTIFICATIONS MODAL -->
+  <div id="notif-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="closeModal('notif-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+      <h3 class="text-xl font-black text-slate-900 mb-1 flex items-center gap-2">
+        <i class="fa-solid fa-bell text-emerald-600"></i> <span data-i18n="notificationCenter">Notification Center</span>
+      </h3>
+      <p class="text-slate-500 text-xs mb-4" data-i18n="notifSub">Updates regarding your product listings and orders.</p>
+
+      <div id="notif-list" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
+    </div>
+  </div>
+
+
+  <!-- SHOPPING CART & CHECKOUT MODAL -->
+  <div id="cart-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] flex flex-col overflow-y-auto">
+      <button onclick="closeModal('cart-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+      
+      <h3 class="text-xl font-black text-slate-900 mb-1 flex items-center gap-2">
+        <i class="fa-solid fa-basket-shopping text-emerald-600"></i> <span data-i18n="yourCart">Your Shopping Cart</span>
+      </h3>
+      <p class="text-slate-500 text-xs mb-4" data-i18n="cartSubtitle">Review items, set location, and choose mobile money payment.</p>
+
+      <div id="cart-items-list" class="divide-y divide-slate-100 pr-1 max-h-44 overflow-y-auto mb-4"></div>
+
+      <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-4 flex items-center justify-between">
+        <span class="text-sm font-bold text-slate-700" data-i18n="totalAmount">Total Amount:</span>
+        <span id="cart-total-price" class="text-lg font-black text-emerald-600">0 FCFA</span>
+      </div>
+
+      <!-- Checkout Form -->
+      <form id="checkout-form" onsubmit="handleCheckout(event)" class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="townCity">Town / City</label>
+            <input type="text" id="checkout-town" required placeholder="Yaoundé / Douala" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="quarterNeighborhood">Quarter / Neighborhood</label>
+            <input type="text" id="checkout-quarter" required placeholder="Bastos, Akwa" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="whatsappLabel">WhatsApp Number (+237)</label>
+          <div class="relative">
+            <span class="absolute left-3 top-2.5 text-xs font-bold text-slate-400">+237</span>
+            <input type="text" id="checkout-whatsapp" inputmode="numeric" maxlength="9" oninput="this.value = this.value.replace(/\D/g, '')" required placeholder="6XXXXXXXX" class="w-full pl-14 pr-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-2" data-i18n="selectPayment">Payment Method:</label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="cursor-pointer">
+              <input type="radio" name="payment_method" value="momo" onchange="togglePaymentPhone(true)" class="peer sr-only" required>
+              <div class="p-3 border-2 border-slate-200 peer-checked:border-amber-500 peer-checked:bg-amber-50 rounded-xl flex items-center justify-center gap-2 font-bold text-xs text-slate-700 transition">
+                <i class="fa-solid fa-mobile-screen-button text-amber-500 text-base"></i> MTN MoMo
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="payment_method" value="orange" onchange="togglePaymentPhone(true)" class="peer sr-only" required>
+              <div class="p-3 border-2 border-slate-200 peer-checked:border-orange-500 peer-checked:bg-orange-50 rounded-xl flex items-center justify-center gap-2 font-bold text-xs text-slate-700 transition">
+                <i class="fa-solid fa-mobile-retro text-orange-500 text-base"></i> Orange Money
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div id="payment-phone-section" class="hidden">
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="paymentPhoneLabel">Mobile Money Phone Number (+237)</label>
+          <div class="relative">
+            <span class="absolute left-3 top-2.5 text-xs font-bold text-slate-400">+237</span>
+            <input type="text" id="payment-phone" inputmode="numeric" maxlength="9" oninput="this.value = this.value.replace(/\D/g, '')" placeholder="6XXXXXXXX" class="w-full pl-14 pr-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+
+        <button type="submit" id="checkout-btn" disabled class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition text-sm disabled:opacity-50 disabled:cursor-not-allowed" data-i18n="confirmOrderBtn">
+          Confirm Payment & Order
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Register Modal -->
+  <div id="register-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('register-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+      <h3 class="text-xl font-black text-slate-900 mb-1" data-i18n="createAccount">Create an Account</h3>
+      <p class="text-slate-500 text-xs mb-4" data-i18n="signUpRequired">Sign up required to buy or sell products.</p>
+
+      <form id="register-form" onsubmit="handleRegister(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="emailLabel">Email Address</label>
+          <input type="email" id="reg-email" required placeholder="user@gmail.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="phoneLabel">Cameroon Phone (+237)</label>
+          <div class="relative">
+            <span class="absolute left-4 top-2.5 text-sm font-bold text-slate-400">+237</span>
+            <input type="text" id="reg-phone" inputmode="numeric" required maxlength="9" oninput="this.value = this.value.replace(/\D/g, '')" placeholder="6XXXXXXXX" class="w-full pl-16 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="townCity">Town / City</label>
+            <input type="text" id="reg-town" required placeholder="Yaoundé" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="quarterNeighborhood">Quarter</label>
+            <input type="text" id="reg-quarter" required placeholder="Bastos" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="passwordLabel">Password</label>
+          <div class="relative">
+            <input type="password" id="reg-password" required minlength="6" placeholder="••••••••" class="w-full px-4 py-2.5 pr-12 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <button type="button" onclick="togglePasswordVisibility('reg-password', 'reg-password-eye')" class="absolute right-4 top-2.5 text-slate-400 hover:text-slate-600 focus:outline-none">
+              <i id="reg-password-eye" class="fa-solid fa-eye text-sm"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition text-sm">Send SMS Verification Code</button>
+      </form>
+
+      <!-- Google Sign-Up Button with SVG Logo -->
+      <div class="mt-5 pt-4 border-t border-slate-100 text-center">
+        <p class="text-xs text-slate-400 mb-3">Or sign up with Google</p>
+        <button type="button" onclick="triggerGoogleLogin()" class="w-full py-3 px-4 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl border border-slate-200 shadow-xs transition text-xs flex items-center justify-center gap-3">
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.18v3.15C3.16 21.32 7.22 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.39-1.49-.39-2.24s.14-1.52.39-2.24V6.6H1.18C.43 8.13 0 9.87 0 12s.43 3.87 1.18 5.4l4.09-3.16z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.16 2.68 1.18 6.6l4.09 3.16c.95-2.85 3.6-4.96 6.73-4.96z"/>
+          </svg>
+          <span>Continue with Google</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SMS OTP VERIFICATION MODAL WITH ANIMATION -->
+  <div id="otp-modal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative text-center">
+      <button onclick="closeModal('otp-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+      
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce">
+        <i class="fa-solid fa-comment-sms"></i>
+      </div>
+
+      <h3 class="text-2xl font-black text-slate-900 mb-1">Verify Mobile Phone</h3>
+      <p class="text-slate-500 text-xs mb-6">Enter the 6-digit SMS code sent to <b id="otp-target-phone" class="text-slate-800">+237 6XXXXXXXX</b>.</p>
+
+      <form id="otp-form" onsubmit="handleVerifyOTPAndRegister(event)" class="space-y-4">
+        <div>
+          <input type="text" id="otp-input" inputmode="numeric" maxlength="6" oninput="this.value = this.value.replace(/\D/g, '')" required placeholder="000000" class="w-full text-center tracking-[12px] font-black text-2xl py-3 rounded-2xl border-2 border-emerald-500 bg-emerald-50/50 text-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-600">
+        </div>
+
+        <button type="submit" id="otp-verify-btn" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2">
+          <span id="otp-btn-text">Verify Phone & Complete Registration</span>
+          <i id="otp-spinner" class="fa-solid fa-circle-notch fa-spin hidden text-lg"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Login Modal with Google Sign-In Button -->
+  <div id="login-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('login-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+      <h3 class="text-xl font-black text-slate-900 mb-1" data-i18n="signInTitle">Sign In</h3>
+      <p class="text-slate-500 text-xs mb-6" data-i18n="signInSubtitle">Enter your credentials to continue.</p>
+
+      <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="loginInputLabel">Email, Phone (+2376...), or Username</label>
+          <input type="text" id="login-input" required class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="passwordLabel">Password</label>
+          <div class="relative">
+            <input type="password" id="login-password" required placeholder="••••••••" class="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <button type="button" onclick="togglePasswordVisibility('login-password', 'login-password-eye')" class="absolute right-4 top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none">
+              <i id="login-password-eye" class="fa-solid fa-eye text-sm"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition text-sm" data-i18n="signInBtn">Sign In</button>
+      </form>
+
+      <!-- Google Sign-In Button with SVG Logo -->
+      <div class="mt-5 pt-4 border-t border-slate-100 text-center">
+        <p class="text-xs text-slate-400 mb-3">Or sign in with Google</p>
+        <button type="button" onclick="triggerGoogleLogin()" class="w-full py-3 px-4 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl border border-slate-200 shadow-xs transition text-xs flex items-center justify-center gap-3">
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.18v3.15C3.16 21.32 7.22 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.39-1.49-.39-2.24s.14-1.52.39-2.24V6.6H1.18C.43 8.13 0 9.87 0 12s.43 3.87 1.18 5.4l4.09-3.16z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.16 2.68 1.18 6.6l4.09 3.16c.95-2.85 3.6-4.96 6.73-4.96z"/>
+          </svg>
+          <span>Continue with Google</span>
+        </button>
+      </div>
+
+      <!-- Visitor Prompt / Create Account Button for Cart Visitors -->
+      <div class="mt-5 pt-4 border-t border-slate-100 text-center">
+        <p class="text-xs text-slate-500 mb-2">Don't have an account yet?</p>
+        <button onclick="closeModal('login-modal'); openModal('register-modal');" class="w-full py-3 bg-slate-100 hover:bg-emerald-50 text-emerald-700 font-bold rounded-xl border border-slate-200 transition text-xs flex items-center justify-center gap-2">
+          <i class="fa-solid fa-user-plus"></i> <span>Create a New Account</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER ADD PRODUCT MODAL (UP TO 6 PICTURES) -->
+  <div id="product-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('product-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+      <h3 class="text-xl font-black text-slate-900 mb-1" data-i18n="addProductTitle">Post a New Product</h3>
+      <p class="text-slate-500 text-xs mb-6" data-i18n="addProductSubtitle">Products will pass through Admin validation before listing.</p>
+
+      <form id="product-form" onsubmit="handleAddProduct(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="prodTitleLabel">Product Title</label>
+          <input type="text" id="prod-title" required placeholder="e.g. iPhone 13 Pro Max" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="priceLabelFCFA">Price (FCFA)</label>
+            <input type="number" id="prod-price" min="0" required placeholder="250000" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="quantity">Quantity</label>
+            <input type="number" id="prod-quantity" min="1" value="1" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="categoryLabel">Category</label>
+            <select id="prod-category" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="electronics">Electronics</option>
+              <option value="fashion">Fashion</option>
+              <option value="vehicles">Vehicles</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Product Pictures (Upload up to 6 pictures)</label>
+          <input type="file" id="prod-image-0" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 mb-2" required>
+          <input type="file" id="prod-image-1" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700 mb-2">
+          <input type="file" id="prod-image-2" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700 mb-2">
+          <input type="file" id="prod-image-3" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700 mb-2">
+          <input type="file" id="prod-image-4" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700 mb-2">
+          <input type="file" id="prod-image-5" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="descriptionLabel">Description</label>
+          <textarea id="prod-description" rows="3" required placeholder="Describe condition, specs..." class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+        </div>
+        <button type="submit" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition text-sm" data-i18n="submitReviewBtn">Submit Product for Review</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADMIN ADD PRODUCT MODAL (UP TO 6 PICTURES) -->
+  <div id="admin-add-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('admin-add-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+      <h3 class="text-xl font-black text-slate-900 mb-1" data-i18n="adminAddTitle">Add New Product (Direct Publish)</h3>
+      <p class="text-slate-500 text-xs mb-6" data-i18n="adminAddSub">Products added by Admin are published immediately without review.</p>
+
+      <form id="admin-add-form" onsubmit="handleAdminAddProduct(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="prodTitleLabel">Product Title</label>
+          <input type="text" id="admin-prod-title" required class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="priceLabelFCFA">Price (FCFA)</label>
+            <input type="number" id="admin-prod-price" min="0" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="quantity">Quantity</label>
+            <input type="number" id="admin-prod-quantity" min="1" value="1" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="categoryLabel">Category</label>
+            <select id="admin-prod-category" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="electronics">Electronics</option>
+              <option value="fashion">Fashion</option>
+              <option value="vehicles">Vehicles</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Product Pictures (Upload up to 6 pictures)</label>
+          <input type="file" id="admin-prod-image-0" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 mb-2" required>
+          <input type="file" id="admin-prod-image-1" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700 mb-2">
+          <input type="file" id="admin-prod-image-2" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700 mb-2">
+          <input type="file" id="admin-prod-image-3" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700 mb-2">
+          <input type="file" id="admin-prod-image-4" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700 mb-2">
+          <input type="file" id="admin-prod-image-5" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="descriptionLabel">Description</label>
+          <textarea id="admin-prod-description" rows="3" required class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+        </div>
+        <button type="submit" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition text-sm" data-i18n="publishImmediate">Publish Product Immediately</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADMIN EDIT/UPDATE PRODUCT MODAL -->
+  <div id="admin-edit-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('admin-edit-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+      <h3 class="text-xl font-black text-slate-900 mb-1" data-i18n="updateProductDetails">Update Product Details & Gallery</h3>
+      <p class="text-slate-500 text-xs mb-6" data-i18n="updateSub">Modify stock quantity, title, price, category, description, or update pictures.</p>
+
+      <form id="admin-edit-form" onsubmit="handleUpdateProduct(event)" class="space-y-4">
+        <input type="hidden" id="edit-prod-id">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="prodTitleLabel">Product Title</label>
+          <input type="text" id="edit-prod-title" required class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="priceLabelFCFA">Price (FCFA)</label>
+            <input type="number" id="edit-prod-price" min="0" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="stockQty">Stock Quantity</label>
+            <input type="number" id="edit-prod-quantity" min="0" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="categoryLabel">Category</label>
+            <select id="edit-prod-category" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="electronics">Electronics</option>
+              <option value="fashion">Fashion</option>
+              <option value="vehicles">Vehicles</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Modify Picture Gallery (Upload new file to replace slot)</label>
+          <input type="file" id="edit-prod-image-0" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-amber-50 file:text-amber-700 mb-2">
+          <input type="file" id="edit-prod-image-1" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700 mb-2">
+          <input type="file" id="edit-prod-image-2" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700 mb-2">
+          <input type="file" id="edit-prod-image-3" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700 mb-2">
+          <input type="file" id="edit-prod-image-4" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700 mb-2">
+          <input type="file" id="edit-prod-image-5" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-50 file:text-slate-700">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="descriptionLabel">Description</label>
+          <textarea id="edit-prod-description" rows="3" required class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+        </div>
+        <button type="submit" class="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-md transition text-sm" data-i18n="updateProductBtn">Update Product & Gallery</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- FLOATING CONTACT WIDGET -->
+  <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 group">
+    <div id="contact-options" class="flex flex-col items-end gap-2 transition-all duration-300 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transform translate-y-2 group-hover:translate-y-0">
+      
+      <a href="https://wa.me/237690873952" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center shadow-lg transition hover:scale-110" title="Chat on WhatsApp">
+        <i class="fa-brands fa-whatsapp text-2xl"></i>
+      </a>
+
+      <a href="mailto:charlyexpress237@gmail.com" class="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-lg transition hover:scale-110" title="Send Email">
+        <i class="fa-solid fa-envelope text-xl"></i>
+      </a>
+    </div>
+
+    <button class="w-14 h-14 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-2xl hover:bg-emerald-600 transition hover:scale-105 active:scale-95">
+      <i class="fa-solid fa-headset text-2xl"></i>
+    </button>
+  </div>
+
+  <footer class="bg-white border-t border-slate-200 mt-auto py-6">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400" data-i18n="rights">
+      &copy; 2026 Charly Express Cameroon. All rights reserved.
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
