@@ -1,5 +1,5 @@
 const API_URL = '/api/api.php';
-const GOOGLE_CLIENT_ID = '904489350740-g3ih4bvl3k06ikrspdtnltm2oj17nj8k.apps.googleusercontent.com'; // Replace with your actual Google OAuth Client ID
+const GOOGLE_CLIENT_ID = '904489350740-g3ih4bvl3k06ikrspdtnltm2oj17nj8k.apps.googleusercontent.com';
 
 let state = {
   lang: localStorage.getItem('charly_lang') || 'en',
@@ -18,8 +18,6 @@ let state = {
   selectedCategory: 'all',
   activeAdminTab: 'orders'
 };
-
-let pendingRegistration = null;
 
 const flagsSVG = {
   en: `<svg viewBox="0 0 60 30" class="w-full h-full object-cover"><clipPath id="s"><path d="M0,0 v30 h60 v-30 z"/></clipPath><g clip-path="url(#s)"><path d="M0,0 v30 h60 v-30 z" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/><path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/></g></svg>`,
@@ -188,8 +186,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   await fetchCategories();
   updateUI();
   fetchProducts();
-  renderCart();
-  fetchNotifications();
 });
 
 function setLanguage(lang) {
@@ -259,8 +255,6 @@ function updateUI() {
 
       userMarketplaceView.classList.add('hidden');
       adminDashboardView.classList.remove('hidden');
-      
-      fetchAdminData();
     } else {
       portalSubtitle.textContent = state.lang === 'en' ? 'Cameroon Market' : 'Marché Cameroun';
       if (adminAddBtn) adminAddBtn.classList.add('hidden');
@@ -429,6 +423,38 @@ function renderProducts() {
       `;
     }
   });
+}
+
+// ==================== DIRECT REGISTRATION & AUTH ====================
+
+async function handleRegisterDirect(e) {
+  e.preventDefault();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const town = document.getElementById('reg-town').value.trim();
+  const quarter = document.getElementById('reg-quarter').value.trim();
+  const password = document.getElementById('reg-password').value;
+
+  try {
+    const res = await fetch(`${API_URL}?action=register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, phone, town, quarter, password })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      state.user = data.user;
+      localStorage.setItem('charly_user', JSON.stringify(data.user));
+      closeModal('register-modal');
+      updateUI();
+      showToast("Account created successfully!", 'success');
+    } else {
+      showToast(data.message, 'error');
+    }
+  } catch (err) {
+    showToast("Server connection error during registration.", 'error');
+  }
 }
 
 function triggerGoogleLogin() {
