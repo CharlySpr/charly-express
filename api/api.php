@@ -8,7 +8,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Parse Neon DATABASE_URL from Vercel Environment Variables
 $databaseUrl = getenv('DATABASE_URL');
 if (!$databaseUrl) {
     echo json_encode([
@@ -25,12 +24,13 @@ $user = $dbParts['user'] ?? '';
 $pass = $dbParts['pass'] ?? '';
 $dbname = ltrim($dbParts['path'] ?? '', '/');
 
-// Extract Neon endpoint ID from the subdomain for SNI support
+// Extract endpoint ID for Neon SNI
 $hostParts = explode('.', $host);
 $endpointId = $hostParts[0] ?? '';
 
+// Construct clean PostgreSQL DSN for PDO
 $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=require";
-if ($endpointId && strpos($databaseUrl, 'options=endpoint') === false) {
+if ($endpointId) {
     $dsn .= ";options=endpoint%3D" . $endpointId;
 }
 
@@ -47,7 +47,7 @@ try {
     exit();
 }
 
-$action = isset($_GET['action']) ? $_GET['action'] : '';
+$action = $_GET['action'] ?? '';
 
 if ($action === 'get_categories') {
     try {
@@ -67,6 +67,41 @@ if ($action === 'get_products') {
         echo json_encode(["success" => true, "products" => $products]);
     } catch (PDOException $e) {
         echo json_encode(["success" => false, "message" => "Failed to fetch products: " . $e->getMessage()]);
+    }
+    exit();
+}
+
+if ($action === 'register') {
+    $data = json_decode(file_get_contents("php://input"), true);
+    $email = trim($data['email'] ?? '');
+    $phone = '+237' . preg_replace('/\D/', '', $data['phone'] ?? '');
+    $town = trim($data['town'] ?? '');
+    $quarter = trim($data['quarter'] ?? '');
+    $password = $data['password'] ?? '';
+
+    if (empty($email) || empty($phone) || empty($password)) {
+        echo json_encode(["success" => false, "message" => "Please fill in all required fields."]);
+        exit();
+    }
+
+    try {
+        $check = $pdo->prepare("SELECT id FROM users WHERE email = ? OR phone = ?");
+        $check->execute([$email, $phone]);
+        if ($check->fetch()) {
+            echo json_encode(["success" => false, "message" => "An account with this email or phone already exists."]);
+            exit();
+        }
+
+        $username = explode('@', $email)[0];
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+        $stmt = $pdo->prepare("INSERT INTO users (username, email, phone, password, role, town, quarter) VALUES (?, ?, ?, ?, 'user', ?, ?) RETURNING id, username, email, role, town, quarter, phone");
+        $stmt->execute([$username, $email, $phone, $hashedPassword, $town, $quarter]);
+        $newUser = $stmt->fetch();
+
+        echo json_encode(["success" => true, "user" => $newUser, "message" => "Account created successfully!"]);
+    } catch (PDOException $e) {
+        echo json_encode(["success" => false, "message" => "Registration database error: " . $e->getMessage()]);
     }
     exit();
 }
@@ -113,7 +148,7 @@ if ($action === 'google_auth') {
                     unset($user['password']);
                     echo json_encode(["success" => true, "user" => $user, "message" => "Google sign-in successful!"]);
                 } else {
-                    $ins = $pdo->prepare("INSERT INTO users (username, email, phone, password, role, town, quarter) VALUES (?, ?, '', '', 'user', '', '') RETURNING id, username, email, role, town, quarter");
+                    $ins = $pdo->prepare("INSERT INTO users (username, email, phone, password, role, town, quarter) VALUES (?, ?, '', '', 'user', '', '') RETURNING id, username, email, role, town, quarter, phone");
                     $ins->execute([$name, $email]);
                     $newUser = $ins->fetch();
                     echo json_encode(["success" => true, "user" => $newUser, "message" => "Account created via Google!"]);
