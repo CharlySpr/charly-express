@@ -377,14 +377,14 @@
     </div>
   </div>
 
-  <!-- Register Modal -->
+  <!-- Register Modal (Direct Sign-Up) -->
   <div id="register-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
       <button onclick="closeModal('register-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
       <h3 class="text-xl font-black text-slate-900 mb-1" data-i18n="createAccount">Create an Account</h3>
       <p class="text-slate-500 text-xs mb-4" data-i18n="signUpRequired">Sign up required to buy or sell products.</p>
 
-      <form id="register-form" onsubmit="handleRegister(event)" class="space-y-3">
+      <form id="register-form" onsubmit="handleRegisterDirect(event)" class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="emailLabel">Email Address</label>
           <input type="email" id="reg-email" required placeholder="user@gmail.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
@@ -415,7 +415,7 @@
             </button>
           </div>
         </div>
-        <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition text-sm">Send SMS Verification Code</button>
+        <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition text-sm">Create Account & Sign In</button>
       </form>
 
       <!-- Google Sign-Up Button with SVG Logo -->
@@ -431,31 +431,6 @@
           <span>Continue with Google</span>
         </button>
       </div>
-    </div>
-  </div>
-
-  <!-- SMS OTP VERIFICATION MODAL WITH ANIMATION -->
-  <div id="otp-modal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative text-center">
-      <button onclick="closeModal('otp-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
-      
-      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce">
-        <i class="fa-solid fa-comment-sms"></i>
-      </div>
-
-      <h3 class="text-2xl font-black text-slate-900 mb-1">Verify Mobile Phone</h3>
-      <p class="text-slate-500 text-xs mb-6">Enter the 6-digit SMS code sent to <b id="otp-target-phone" class="text-slate-800">+237 6XXXXXXXX</b>.</p>
-
-      <form id="otp-form" onsubmit="handleVerifyOTPAndRegister(event)" class="space-y-4">
-        <div>
-          <input type="text" id="otp-input" inputmode="numeric" maxlength="6" oninput="this.value = this.value.replace(/\D/g, '')" required placeholder="000000" class="w-full text-center tracking-[12px] font-black text-2xl py-3 rounded-2xl border-2 border-emerald-500 bg-emerald-50/50 text-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-600">
-        </div>
-
-        <button type="submit" id="otp-verify-btn" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2">
-          <span id="otp-btn-text">Verify Phone & Complete Registration</span>
-          <i id="otp-spinner" class="fa-solid fa-circle-notch fa-spin hidden text-lg"></i>
-        </button>
-      </form>
     </div>
   </div>
 
